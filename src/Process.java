@@ -46,9 +46,7 @@ public class Process implements Runnable {
                 FloodMax(allMessages);
             }
 
-
-            if (leaderElected) {
-                this.terminated = true;
+            if (leaderElected || terminated) {
                 break;
             }
 
