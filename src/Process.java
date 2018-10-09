@@ -12,7 +12,7 @@ public class Process implements Runnable {
     private volatile boolean startNextRound;
     private int round;
     private volatile boolean terminated;
-    private boolean leaderElected;
+    private volatile boolean leaderElected;
     private Status status;
     private int maxPid;
     private int pendingAcks;
@@ -40,6 +40,8 @@ public class Process implements Runnable {
                 neighborChannel.purge();
             }
 
+            isLeaderMessagePresent(allMessages);
+
             if (!terminated) {
                 FloodMax(allMessages);
             }
@@ -52,6 +54,18 @@ public class Process implements Runnable {
 
         }
 
+    }
+
+    private void isLeaderMessagePresent(ArrayList<Message> allMessages) {
+        for(Message message: allMessages){
+            if(message.getType().equals(MessageType.LEADER_DECLARATION)){
+                this.status = Status.NON_LEADER;
+                this.leaderElected = true;
+                this.terminated = true;
+                this.parent = message.getSenderProcess();
+                broadcast(message);
+            }
+        }
     }
 
     private void FloodMax(ArrayList<Message> allMessages) {
@@ -68,13 +82,6 @@ public class Process implements Runnable {
             for (Message message : allMessages) {
 
                 switch (message.getType()) {
-                    case LEADER_DECLARATION:
-                        this.status = Status.NON_LEADER;
-                        this.leaderElected = true;
-                        this.parent = message.getSenderProcess();
-                        broadcast(message);
-                        // end the algorithm
-                        return;
                     case EXPLORE:
                         if (message.getMaxSeenPid() > maxPid) {
                             maxPid = message.getMaxSeenPid();
@@ -106,6 +113,7 @@ public class Process implements Runnable {
             if (pendingAcks == 0 && this.parent == null && status.equals(Status.UNKNOWN)) {
                 this.status = Status.LEADER;
                 this.leaderElected = true;
+                this.terminated = true;
                 System.out.println("Leader Election Completed! Leader is -> " + pid);
                 Message messageToSend = new Message(maxPid, this.pid, this,
                         0, 0, MessageType.LEADER_DECLARATION);
@@ -113,7 +121,9 @@ public class Process implements Runnable {
 
             }
         }
+
         round++;
+
         this.setStartNextRound(false);
     }
 
