@@ -110,7 +110,7 @@ public class Process implements Runnable {
                 }
             }
 
-            if (pendingAcks == 0 && this.parent == null && status.equals(Status.UNKNOWN)) {
+            if (pendingAcks == 0 && this.parent == null && status.equals(Status.UNKNOWN) && !terminated &&!leaderElected) {
                 this.status = Status.LEADER;
                 this.leaderElected = true;
                 this.terminated = true;
