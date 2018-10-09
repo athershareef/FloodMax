@@ -101,7 +101,7 @@ public class Process implements Runnable {
                         this.pendingAcks--;
 
                         // If I have received all the acks
-                        if (pendingAcks <= 0 && this.parent != null && status.equals(Status.UNKNOWN)) {
+                        if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN)) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
                                     this.parent.pid, 0, MessageType.ACK);
                             sendMessage(getChannel(parent), ackMessage);
