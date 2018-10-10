@@ -62,6 +62,7 @@ public class Process implements Runnable {
                 this.terminated = true;
                 this.parent = message.getSenderProcess();
                 broadcast(message);
+                return;
             }
         }
     }
