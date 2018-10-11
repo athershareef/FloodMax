@@ -95,6 +95,7 @@ public class Process implements Runnable {
                         break;
                     case NACK:
                     case ACK:
+                        // Means no one responded to my
                         if(this.parent!=null && this.parent.pid == message.getExplorePid()
                                 || this.parent==null && message.getExplorePid() ==0) {
                             this.pendingAcks--;
@@ -149,7 +150,7 @@ public class Process implements Runnable {
 
     private void sendMessage(Channel neighborChannel, Message message) {
         if(message!=null) {
-            System.out.println("Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + neighborChannel.getProcess().pid);
+            System.out.println(Thread.currentThread().getName()+" Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + neighborChannel.getProcess().pid);
             neighborChannel.add(message);
         }
     }
