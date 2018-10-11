@@ -11,19 +11,17 @@ public class Process implements Runnable {
     private ArrayList<Channel> neighbors;
     private volatile boolean startNextRound;
     private int round;
-    private volatile boolean terminated;
     private volatile boolean leaderElected;
     private Status status;
     private int maxPid;
     private int pendingAcks;
+    private boolean ackToParent;
 
     public Process(int pid) {
         this.pid = pid;
         this.neighbors = new ArrayList<>();
         this.startNextRound = false;
         this.round = 1;
-        this.terminated = false;
-        this.leaderElected = false;
         this.status = Status.UNKNOWN;
         this.maxPid = this.pid;
     }
@@ -42,11 +40,11 @@ public class Process implements Runnable {
 
             isLeaderMessagePresent(allMessages);
 
-            if (!terminated) {
+            if (!leaderElected) {
                 FloodMax(allMessages);
             }
 
-            if (leaderElected || terminated) {
+            if (leaderElected) {
                 break;
             }
 
@@ -59,7 +57,6 @@ public class Process implements Runnable {
             if(message.getType().equals(MessageType.LEADER_DECLARATION)){
                 this.status = Status.NON_LEADER;
                 this.leaderElected = true;
-                this.terminated = true;
                 this.parent = message.getSenderProcess();
                 broadcast(message);
                 return;
@@ -89,6 +86,7 @@ public class Process implements Runnable {
                                    this.parent.pid, 0, MessageType.EXPLORE);
                             broadcast(messageToSend);
                             pendingAcks = neighbors.size();
+                            ackToParent = false;
                         } else if (message.getMaxSeenPid() <= maxPid) {
                             Message nackMessage = new Message(maxPid, this.pid, this,
                                     message.getExplorePid(), 0, MessageType.NACK);
@@ -97,22 +95,25 @@ public class Process implements Runnable {
                         break;
                     case NACK:
                     case ACK:
-                        this.pendingAcks--;
+                        if(this.parent!=null && this.parent.pid == message.getExplorePid()
+                                || this.parent==null && message.getExplorePid() ==0) {
+                            this.pendingAcks--;
+                        }
 
                         // If I have received all the acks
-                        if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN)) {
+                        if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN) && !ackToParent) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
                                     this.parent.pid, 0, MessageType.ACK);
                             sendMessage(getChannel(parent), ackMessage);
+                            ackToParent = true;
                         }
                         break;
                 }
             }
 
-            if (pendingAcks == 0 && this.parent == null && status.equals(Status.UNKNOWN) && !terminated &&!leaderElected) {
+            if (pendingAcks == 0 && this.parent == null && status.equals(Status.UNKNOWN) && !leaderElected) {
                 this.status = Status.LEADER;
                 this.leaderElected = true;
-                this.terminated = true;
                 System.out.println("Leader Election Completed! Leader is -> " + pid);
                 Message messageToSend = new Message(maxPid, this.pid, this,
                         0, 0, MessageType.LEADER_DECLARATION);
@@ -148,7 +149,7 @@ public class Process implements Runnable {
 
     private void sendMessage(Channel neighborChannel, Message message) {
         if(message!=null) {
-            System.out.println("Round: " + round + ", SENDING " + message.getType() + " from " + message.getSenderPid() + " to -> " + neighborChannel.getProcess().pid);
+            System.out.println("Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + neighborChannel.getProcess().pid);
             neighborChannel.add(message);
         }
     }
