@@ -89,12 +89,12 @@ public class Process implements Runnable {
                             Message messageToSend = new Message(maxPid, this.pid, this,
                                    this.parent.pid, 0, MessageType.EXPLORE);
                             broadcast(messageToSend);
-                            pendingAcks = myChannels.size();
+                            pendingAcks = this.parent == null? myChannels.size(): myChannels.size() -1;
                             ackToParent = false;
                         } else if (message.getMaxSeenPid() <= maxPid) {
                             Message nackMessage = new Message(maxPid, this.pid, this,
                                     message.getExplorePid(), 0, MessageType.NACK);
-                            sendMessage(getChannel(message.getSenderPid()).getProcess(), nackMessage);
+                            sendMessage(message.getSenderProcess(), nackMessage);
                         }
                         break;
                     case NACK:
