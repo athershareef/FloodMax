@@ -8,7 +8,7 @@ public class Process implements Runnable {
 
     private int pid;
     private Process parent;
-    private ArrayList<Channel> neighbors;
+    private ArrayList<Channel> myChannels;
     private volatile boolean startNextRound;
     private int round;
     private volatile boolean leaderElected;
@@ -19,8 +19,7 @@ public class Process implements Runnable {
 
     public Process(int pid) {
         this.pid = pid;
-        this.neighbors = new ArrayList<>();
-        this.startNextRound = false;
+        this.myChannels = new ArrayList<>();
         this.round = 1;
         this.status = Status.UNKNOWN;
         this.maxPid = this.pid;
@@ -33,9 +32,14 @@ public class Process implements Runnable {
 
             ArrayList<Message> allMessages = new ArrayList<>();
 
-            for (Channel neighborChannel : neighbors) {
-                allMessages.addAll(neighborChannel.read());
-                neighborChannel.purge();
+//            for (Channel neighborChannel : neighbors) {
+//                allMessages.addAll(neighborChannel.read());
+//                neighborChannel.purge();
+//            }
+
+            for (Channel eachMessage : myChannels) {
+                allMessages.addAll(eachMessage.read());
+                eachMessage.purge();
             }
 
             isLeaderMessagePresent(allMessages);
@@ -73,7 +77,7 @@ public class Process implements Runnable {
             Message messageToSend = new Message(maxPid, this.pid, this,
                     0, 0, MessageType.EXPLORE);
             broadcast(messageToSend);
-            pendingAcks = neighbors.size();
+            pendingAcks = myChannels.size();
         } else {
             for (Message message : allMessages) {
 
@@ -85,12 +89,12 @@ public class Process implements Runnable {
                             Message messageToSend = new Message(maxPid, this.pid, this,
                                    this.parent.pid, 0, MessageType.EXPLORE);
                             broadcast(messageToSend);
-                            pendingAcks = neighbors.size();
+                            pendingAcks = myChannels.size();
                             ackToParent = false;
                         } else if (message.getMaxSeenPid() <= maxPid) {
                             Message nackMessage = new Message(maxPid, this.pid, this,
                                     message.getExplorePid(), 0, MessageType.NACK);
-                            sendMessage(getChannel(message.getSenderProcess()), nackMessage);
+                            sendMessage(getChannel(message.getSenderPid()).getProcess(), nackMessage);
                         }
                         break;
                     case NACK:
@@ -105,7 +109,7 @@ public class Process implements Runnable {
                         if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN) && !ackToParent) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
                                     this.parent.pid, 0, MessageType.ACK);
-                            sendMessage(getChannel(parent), ackMessage);
+                            sendMessage(this.parent, ackMessage);
                             ackToParent = true;
                         }
                         break;
@@ -128,30 +132,36 @@ public class Process implements Runnable {
         this.setStartNextRound(false);
     }
 
-    private Channel getChannel(Process senderProcess) {
-        for (Channel channel : neighbors) {
-            for(Channel each: channel.getProcess().getNeighbors()){
-                if (each.getProcess().pid == senderProcess.pid) {
-                    return channel;
+    private Channel getChannel(int processId) {
+        for (Channel eachChannel: myChannels) {
+                if (eachChannel.getProcess().pid == processId) {
+                    return eachChannel;
                 }
             }
-        }
-        return null;
+            return null;
     }
 
+
     private void broadcast(Message message) {
-        for (Channel neighborChannel : neighbors) {
-            if (!neighborChannel.getProcess().equals(parent)) {
-                sendMessage(neighborChannel, message);
+        for (Channel eachChannel : myChannels) {
+            if (!eachChannel.getProcess().equals(parent)) {
+                sendMessage(eachChannel.getProcess(), message);
             }
         }
 
     }
 
-    private void sendMessage(Channel neighborChannel, Message message) {
+    private void sendMessage(Process process, Message message) {
         if(message!=null) {
-            System.out.println(Thread.currentThread().getName()+" Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + neighborChannel.getProcess().pid);
-            neighborChannel.add(message);
+            System.out.println(Thread.currentThread().getName()+" Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + process.pid);
+            process.addMessage(message);
+        }
+    }
+
+    private void addMessage(Message message) {
+        Channel channel = getChannel(message.getSenderPid());
+        if(channel!=null){
+            channel.add(message);
         }
     }
 
@@ -167,13 +177,9 @@ public class Process implements Runnable {
     }
 
 
-    // creating a channel to the new process from this process and adding neighbor
+    // creating a channel to the new process from this process
     public void addNeighbor(Process process) {
-        this.neighbors.add(new Channel(process));
-    }
-
-    public ArrayList<Channel> getNeighbors() {
-        return neighbors;
+        this.myChannels.add(new Channel(process));
     }
 
     @Override
