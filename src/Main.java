@@ -55,9 +55,33 @@ public class Main {
                 process.setStartNextRound(true);
             }
 
+            delay(50);
+
+            boolean roundComplete = true;
+
+            while(true) {
+                for (Process process : processes) {
+                    if(process.isStartNextRound()){
+                        roundComplete = false;
+                        delay(10);
+                        break;
+                    }
+                }
+                if(roundComplete){
+                    break;
+                }
+            }
 
         }
 
 
+    }
+
+    private static void delay(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
