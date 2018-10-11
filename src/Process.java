@@ -12,6 +12,7 @@ public class Process implements Runnable {
     private volatile boolean startNextRound;
     private int round;
     private volatile boolean leaderElected;
+
     private Status status;
     private int maxPid;
     private int pendingAcks;
@@ -99,12 +100,7 @@ public class Process implements Runnable {
                         break;
                     case NACK:
                     case ACK:
-                        // Means no one responded to my
-                        if(this.parent!=null && this.parent.pid == message.getExplorePid()
-                                || this.parent==null && message.getExplorePid() ==0) {
-                            this.pendingAcks--;
-                        }
-
+                        this.pendingAcks--;
                         // If I have received all the acks
                         if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN) && !ackToParent) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
@@ -201,5 +197,13 @@ public class Process implements Runnable {
 
     public boolean isStartNextRound() {
         return startNextRound;
+    }
+
+    public boolean isLeaderElected() {
+        return leaderElected;
+    }
+
+    public void setLeaderElected(boolean leaderElected) {
+        this.leaderElected = leaderElected;
     }
 }
