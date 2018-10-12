@@ -104,6 +104,15 @@ public class Process implements Runnable {
                         if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN) && !ackToParent) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
                                     this.parent.pid, 0, MessageType.ACK);
+                           // Sending to Main
+                            ArrayList<Process> childList;
+                            childList = Main.Tree.get(this.parent);
+                            if(childList==null){
+                                childList = new ArrayList<>();
+                            }
+                            childList.add(this);
+                            Main.Tree.put(this.parent, childList);
+
                             sendMessage(this.parent, ackMessage);
                             ackToParent = true;
                         }
@@ -164,7 +173,6 @@ public class Process implements Runnable {
     private void waitForMasterSync(int time) {
         while (!isStartNextRound()) {
             try {
-                System.out.println(Thread.currentThread().getName()+" is waiting!");
                 Thread.sleep(time);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -222,4 +230,12 @@ public class Process implements Runnable {
     public void setStatus(Status status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "Process{" +
+                "pid=" + pid +
+                '}';
+    }
+
 }
