@@ -66,17 +66,24 @@ public class Main {
                         delay(10);
                         break;
                     }
-                    if(process.isLeaderElected()){
-                        isAnyThreadRunning = false;
-                    }
                 }
                 if(roundComplete || !isAnyThreadRunning){
                     break;
                 }
             }
 
-            if (!isAnyThreadRunning) {
-                System.out.println("Leader is Selected!");
+            boolean leaderElected = true;
+
+
+            for(Process process: processes){
+                if(!process.isLeaderElected()){
+                    leaderElected = false;
+                }
+            }
+
+
+            if (leaderElected) {
+                System.out.println("Leader is Selected -Everyone knows!");
                 break;
             }
 

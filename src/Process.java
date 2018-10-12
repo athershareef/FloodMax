@@ -45,9 +45,7 @@ public class Process implements Runnable {
 
             isLeaderMessagePresent(allMessages);
 
-            if (!leaderElected) {
-                FloodMax(allMessages);
-            }
+            FloodMax(allMessages);
 
             if (leaderElected) {
                 break;
