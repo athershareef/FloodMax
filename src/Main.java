@@ -1,3 +1,5 @@
+import java.util.Random;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -33,6 +35,7 @@ public class Main {
         Thread[] threads = new Thread[n];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(processes[i]);
+            threads[i].setName("Process "+processes[i].getPid());
             threads[i].start();
         }
 
@@ -40,6 +43,7 @@ public class Main {
             boolean isAnyThreadRunning = false;
 
             for (Thread thread : threads) {
+                delay(10);
                 if (thread.isAlive()) {
                     isAnyThreadRunning = true;
                     break;

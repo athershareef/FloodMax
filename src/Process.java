@@ -29,7 +29,7 @@ public class Process implements Runnable {
     @Override
     public void run() {
         while (true) {
-            waitForMasterSync(20);
+            waitForMasterSync(5);
 
             ArrayList<Message> allMessages = new ArrayList<>();
 
@@ -62,6 +62,7 @@ public class Process implements Runnable {
                 this.leaderElected = true;
                 this.parent = message.getSenderProcess();
                 broadcast(message);
+                startNextRound = false;
                 return;
             }
         }
@@ -163,6 +164,7 @@ public class Process implements Runnable {
     private void waitForMasterSync(int time) {
         while (!isStartNextRound()) {
             try {
+                System.out.println(Thread.currentThread().getName()+" is waiting!");
                 Thread.sleep(time);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -203,5 +205,21 @@ public class Process implements Runnable {
 
     public void setLeaderElected(boolean leaderElected) {
         this.leaderElected = leaderElected;
+    }
+
+    public int getPid() {
+        return pid;
+    }
+
+    public void setPid(int pid) {
+        this.pid = pid;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }
