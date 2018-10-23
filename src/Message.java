@@ -1,5 +1,3 @@
-import enums.MessageType;
-
 public class Message {
     private int maxSeenPid;
     private int senderPid;

@@ -19,7 +19,7 @@ public class Channel {
         this.queue.add(message);
     }
 
-    public void purge(){
+    public void purge() {
         this.queue.clear();
     }
 

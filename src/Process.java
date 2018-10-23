@@ -1,6 +1,3 @@
-import enums.MessageType;
-import enums.Status;
-
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -56,8 +53,8 @@ public class Process implements Runnable {
     }
 
     private void isLeaderMessagePresent(ArrayList<Message> allMessages) {
-        for(Message message: allMessages){
-            if(message.getType().equals(MessageType.LEADER_DECLARATION)){
+        for (Message message : allMessages) {
+            if (message.getType().equals(MessageType.LEADER_DECLARATION)) {
                 this.status = Status.NON_LEADER;
                 this.leaderElected = true;
                 this.parent = message.getSenderProcess();
@@ -73,7 +70,7 @@ public class Process implements Runnable {
     }
 
     private void transition(ArrayList<Message> allMessages) {
-        if(round == 1){
+        if (round == 1) {
             Message messageToSend = new Message(maxPid, this.pid, this,
                     0, 0, MessageType.EXPLORE);
             broadcast(messageToSend);
@@ -87,9 +84,9 @@ public class Process implements Runnable {
                             maxPid = message.getMaxSeenPid();
                             this.parent = message.getSenderProcess();
                             Message messageToSend = new Message(maxPid, this.pid, this,
-                                   this.parent.pid, 0, MessageType.EXPLORE);
+                                    this.parent.pid, 0, MessageType.EXPLORE);
                             broadcast(messageToSend);
-                            pendingAcks = this.parent == null? myChannels.size(): myChannels.size() -1;
+                            pendingAcks = this.parent == null ? myChannels.size() : myChannels.size() - 1;
                             ackToParent = false;
                         } else if (message.getMaxSeenPid() <= maxPid) {
                             Message nackMessage = new Message(maxPid, this.pid, this,
@@ -104,10 +101,10 @@ public class Process implements Runnable {
                         if (pendingAcks == 0 && this.parent != null && status.equals(Status.UNKNOWN) && !ackToParent) {
                             Message ackMessage = new Message(maxPid, this.pid, this,
                                     this.parent.pid, 0, MessageType.ACK);
-                           // Sending to Main
+                            // Sending to Main
                             ArrayList<Process> childList;
                             childList = Main.Tree.get(this.parent);
-                            if(childList==null){
+                            if (childList == null) {
                                 childList = new ArrayList<>();
                             }
                             childList.add(this);
@@ -137,12 +134,12 @@ public class Process implements Runnable {
     }
 
     private Channel getChannel(int processId) {
-        for (Channel eachChannel: myChannels) {
-                if (eachChannel.getProcess().pid == processId) {
-                    return eachChannel;
-                }
+        for (Channel eachChannel : myChannels) {
+            if (eachChannel.getProcess().pid == processId) {
+                return eachChannel;
             }
-            return null;
+        }
+        return null;
     }
 
 
@@ -156,15 +153,15 @@ public class Process implements Runnable {
     }
 
     private void sendMessage(Process process, Message message) {
-        if(message!=null) {
-            System.out.println(Thread.currentThread().getName()+" Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + process.pid);
+        if (message != null) {
+            System.out.println(Thread.currentThread().getName() + " Round: " + round + ", Sending " + message.getType() + " from " + message.getSenderPid() + " to -> " + process.pid);
             process.addMessage(message);
         }
     }
 
     private void addMessage(Message message) {
         Channel channel = getChannel(message.getSenderPid());
-        if(channel!=null){
+        if (channel != null) {
             channel.add(message);
         }
     }
@@ -199,12 +196,12 @@ public class Process implements Runnable {
         return Objects.hash(pid);
     }
 
-    public void setStartNextRound(boolean startNextRound) {
-        this.startNextRound = startNextRound;
-    }
-
     public boolean isStartNextRound() {
         return startNextRound;
+    }
+
+    public void setStartNextRound(boolean startNextRound) {
+        this.startNextRound = startNextRound;
     }
 
     public boolean isLeaderElected() {

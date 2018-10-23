@@ -1,56 +1,48 @@
-import enums.Status;
-
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Random;
 
 public class Main {
 
     public static HashMap<Process, ArrayList<Process>> Tree = new HashMap<>();
 
-    public static void main(String[] args) {
-        // TODO: Read Input
-        int n = 21;
-        Matrix matrix = new Matrix(n);
-        int[] processIds = new int[n];
-        for (int i = 0; i < n; i++) {
-            processIds[i] = i;
+    public static void main(String[] args) throws FileNotFoundException {
+        String inputFile;
+        int n = 0;
+        int[] processIds = new int[0];
+        int[][] adjacencyMatrix = new int[0][0];
+        if (args.length == 0) {
+            inputFile = "input3.txt";
+        } else {
+            inputFile = args[0];
         }
-//        int[][] adjacencyMatrix = new int[][]{
-//                {0, 1, 1, 1, 0, 0, 0, 0},
-//                {1, 0, 1, 0, 0, 1, 0, 1},
-//                {1, 1, 0, 1, 1, 0, 0, 1},
-//                {1, 0, 1, 0, 1, 0, 0, 0},
-//                {0, 0, 1, 1, 0, 0, 1, 1},
-//                {0, 1, 0, 0, 0, 0, 1, 1},
-//                {0, 0, 0, 0, 1, 1, 0, 1},
-//                {0, 1, 1, 0, 1, 1, 1, 0}};
-        int[][] adjacencyMatrix = new int[][]{
-                {0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                {0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
-                {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0}
-        };
+        System.setOut(new PrintStream(new File("output.txt")));
 
+        try {
+            File file = new File(inputFile);
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+            n = Integer.parseInt(bufferedReader.readLine());
+            processIds = new int[n];
+            adjacencyMatrix = new int[n][n];
+            int i = 0;
+            for (String s : bufferedReader.readLine().split(" ")) {
+                processIds[i] = Integer.parseInt(s);
+                i++;
+            }
 
+            for (i = 0; i < n; i++) {
+                int j = 0;
+                for (String s : bufferedReader.readLine().split(", ")) {
+                    adjacencyMatrix[i][j] = Integer.parseInt(s);
+                    j++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Matrix matrix = new Matrix(n);
 
         Process[] processes = new Process[n];
 
@@ -69,7 +61,7 @@ public class Main {
         Thread[] threads = new Thread[n];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(processes[i]);
-            threads[i].setName("Process "+processes[i].getPid());
+            threads[i].setName("Process " + processes[i].getPid());
             threads[i].start();
         }
 
@@ -97,30 +89,30 @@ public class Main {
 
             boolean leaderElected = false;
 
-            while(true) {
+            while (true) {
                 boolean everyoneKnowsLeader = true;
                 boolean roundComplete = true;
                 for (Process process : processes) {
-                    if(process.isLeaderElected()){
+                    if (process.isLeaderElected()) {
                         leaderElected = true;
-                    }else {
+                    } else {
                         everyoneKnowsLeader = false;
                     }
-                    if(!process.isStartNextRound() && leaderElected && process.getStatus().equals(Status.UNKNOWN)){
+                    if (!process.isStartNextRound() && leaderElected && process.getStatus().equals(Status.UNKNOWN)) {
                         process.setLeaderElected(true);
                         process.setStatus(Status.NON_LEADER);
                         process.setStartNextRound(true);
                         delay(20);
                         process.setStartNextRound(false);
                     }
-                    if(process.isStartNextRound()){
+                    if (process.isStartNextRound()) {
                         roundComplete = false;
                         delay(10);
                         break;
                     }
 
                 }
-                if(roundComplete || everyoneKnowsLeader){
+                if (roundComplete || everyoneKnowsLeader) {
                     break;
                 }
             }
@@ -128,8 +120,8 @@ public class Main {
             leaderElected = true;
 
 
-            for(Process process: processes){
-                if(!process.isLeaderElected()){
+            for (Process process : processes) {
+                if (!process.isLeaderElected()) {
                     leaderElected = false;
                 }
             }
@@ -137,26 +129,34 @@ public class Main {
 
             if (leaderElected) {
                 int leaderId = 0;
-                for(Process process: processes){
-                    if(process.getStatus().equals(Status.LEADER)){
+                for (Process process : processes) {
+                    if (process.getStatus().equals(Status.LEADER)) {
                         leaderId = process.getPid();
                     }
                 }
-                System.out.println("Leader is "+ leaderId +"-Everyone knows!");
+                System.out.println("Leader is " + leaderId + "-Everyone knows!");
 
-                for(Process process : Tree.keySet()){
-                    for(Process p: Tree.get(process)){
-                        matrix.adjacencyTreeMatrix[p.getPid()][process.getPid()] = 1;
+
+                // To make sure that we can map the higher ids within the Matrix
+                HashMap<Integer, Integer> valMap = new HashMap<>();
+
+                for (int i = 0; i < processIds.length; i++) {
+                    valMap.put(processIds[i], i);
+                }
+
+                for (Process process : Tree.keySet()) {
+                    for (Process p : Tree.get(process)) {
+                        matrix.adjacencyTreeMatrix[valMap.get(p.getPid())][valMap.get(process.getPid())] = 1;
 //                        System.out.println(p.getPid()+" -> "+process.getPid());
                     }
                 }
                 System.out.println("Resultant Tree Matrix with ACKS");
-                for (int[] row : matrix.adjacencyTreeMatrix){
+                for (int[] row : matrix.adjacencyTreeMatrix) {
                     System.out.println(Arrays.toString(row));
                 }
                 System.out.println("************ Result **************");
                 System.out.println();
-                System.out.println("Leader is "+ leaderId +"-Everyone knows!");
+                System.out.println("Leader is " + leaderId + "-Everyone knows!");
                 System.out.println();
                 System.out.println("************ END *****************");
 
